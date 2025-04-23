@@ -1,0 +1,21 @@
+.container
+{
+    justify-content:center;
+    padding:20px;
+    margin-top:200px;
+}
+
+.header
+{
+    padding:20px;
+}
+.inputs input
+{
+    width:200px;
+    height:20px;
+}
+.loginbutton
+{
+    margin:20px;
+    padding:5px;
+}
