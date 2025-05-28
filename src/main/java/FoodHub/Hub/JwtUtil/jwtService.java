@@ -30,14 +30,21 @@ public class jwtService {
     SecretKeyProvider secretkeyprovider;
 
     public String getEmailId(String jwtToken) throws Exception {
+        System.out.print(jwtToken);
        return extractClaim(jwtToken,Claims::getSubject);
 
+    }
+
+    public String getRole(String jwtToken) throws Exception {
+        String role=getClaims(jwtToken).get("role",String.class);
+        return role;
     }
     private Claims getClaims(String jwtToken) throws Exception {
         return Jwts.parserBuilder().setSigningKey(getSigingKey()).build().parseClaimsJws(jwtToken).getBody();
     }
 
     private <T> T extractClaim(String token, Function<Claims,T> claimResolver) throws Exception {
+
         Claims claims=getClaims(token);
         System.out.println("Successfully came here");
         return claimResolver.apply(claims);
@@ -67,4 +74,5 @@ public class jwtService {
        String user=this.getEmailId(token);
         return isTokenExpired(token) && user.equals(username.getUsername());
     }
+
 }

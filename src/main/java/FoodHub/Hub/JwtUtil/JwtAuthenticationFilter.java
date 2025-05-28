@@ -7,7 +7,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -24,7 +27,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     jwtService jwtservice;
 
     @Autowired
+    @Qualifier("userDetailsService")
     UserDetailsService userDetailsService;
+
+    @Autowired
+    @Qualifier("AdminDetailsService")
+    UserDetailsService adminDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -54,21 +62,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if(jwtToken!=null) {
             System.out.print("token " + jwtToken);
             String emailid = null;
+            String role=null;
             try {
                 emailid = jwtservice.getEmailId(jwtToken);
+                System.out.println(emailid);
+                role=jwtservice.getRole(jwtToken);
+
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
             System.out.println("Successfully came here");
 
             if (emailid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails username = this.userDetailsService.loadUserByUsername(emailid);
+                UserDetails username= null;
+                try {
+                    username = role.equals("USER")?this.userDetailsService.loadUserByUsername(emailid):this.adminDetailsService.loadUserByUsername(emailid);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 try {
                     if (username != null && jwtservice.isValidated(jwtToken, username)) {
                         UsernamePasswordAuthenticationToken authtoken = new UsernamePasswordAuthenticationToken(username,
                                 null,
-                                username.getAuthorities()
-                        );
+                                List.of(new SimpleGrantedAuthority("ROLE_"+role)
+                        ));
                         authtoken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authtoken);
                     }

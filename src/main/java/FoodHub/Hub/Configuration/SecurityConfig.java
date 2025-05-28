@@ -45,12 +45,13 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().requestMatchers("/verifyuser","/newuser","/lotr").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().requestMatchers("/verifyuser","/newuser","/lotr","/newadmin","/verifyadmin").permitAll()
                         .anyRequest().authenticated()
                 ).httpBasic(Customizer.withDefaults())
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .formLogin(form->form.disable());
+                .formLogin(form->form.disable())
+                .httpBasic().disable();
 
         return http.build();
     }

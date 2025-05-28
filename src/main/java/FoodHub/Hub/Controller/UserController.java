@@ -2,6 +2,8 @@ package FoodHub.Hub.Controller;
 
 
 import FoodHub.Hub.DTO.*;
+import FoodHub.Hub.Entity.Admin;
+import FoodHub.Hub.Entity.Tables;
 import FoodHub.Hub.Entity.UserEntity;
 import FoodHub.Hub.JwtUtil.JwtUtil;
 import FoodHub.Hub.UserService.AppUserService;
@@ -18,11 +20,13 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -91,74 +95,44 @@ public class UserController {
     }
     @PostMapping("/verifyuser")
     public AuthenticationResponse verifyUser(@RequestBody UserEntity userentity, HttpServletRequest request, HttpServletResponse response) throws Exception {
-            AuthenticationResponse authresponse=userserviceimpl.authenticsteUser(userentity,response);
+            AuthenticationResponse authresponse=userserviceimpl.authenticateUser(userentity,response);
+        return authresponse;
+    }
+
+
+    @PostMapping("admin/table")
+    public ResponseEntity<?> addTables(@CurrentSecurityContext(expression="authentication?,name") String emailId,@RequestBody tablesDto tableRequest)
+    {
+
+        Tables table=userserviceimpl.addTable(tableRequest);
+        return ResponseEntity.status(200).body(table);
+    }
+    @PostMapping("/newadmin")
+    public ResponseEntity<?> createAdmin(@RequestBody Admin admin) throws Exception {
+
+        Admin newAdmin=userserviceimpl.createadmin(admin);
+        return ResponseEntity.status(200).body(newAdmin);
+    }
+
+    @PostMapping("/verifyadmin")
+    public AdminAuthResponse verifyadmin(@RequestBody Admin admin, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        AdminAuthResponse authresponse=userserviceimpl.authenticateAdmin(admin,response);
         return authresponse;
 
 
     }
 
-    @PostMapping("user/reset-password")
-    public UserDto resetPassword(@RequestBody OtpRequest otprequest)
-    {
-        UserDto user=userserviceimpl.verifyOtp(otprequest.getEmailId(),otprequest.getPassword(),otprequest.getOtp());
-        return user;
-    }
+
 
     @GetMapping("/user/getOtp")
-    public void sendOtp(@CurrentSecurityContext(expression="authentication?.name")String email)
-    {
+    public void sendOtp(@CurrentSecurityContext(expression="authentication?.name")String email) {
         emailService.sendOtp(email);
     }
 
 
-    @GetMapping("/verifyotp/{otpNo}")
-    @ResponseBody
-    public String verifyotp(@PathVariable String otpNo,HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        System.out.println(session.getId()+" "+(String) session.getAttribute("generatedOtp"));
-
-        if (session != null)
-        {
-            System.out.println(session.getId()+" "+(String) session.getAttribute("email"));
-            System.out.println(session.getId()+" "+(String) session.getAttribute("generatedOtp"));
-            String actualotp=(String)session.getAttribute("generatedOtp");  // Don't create a new session if one doesn't exist
-            if(otpNo.equals(actualotp))
-            {
-                System.out.print("Yes they are same");
-                return "Yes";
-            }
-            // Check if the JSESSIONID cookie was received (you might not need to explicitly check the cookie)
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                Optional<Cookie> jsessionidCookie = Arrays.stream(cookies)
-                        .filter(cookie -> "JSESSIONID".equals(cookie.getName()))
-                        .findFirst();
-                if (jsessionidCookie.isPresent()) {
-
-                    System.out.println("JSESSIONID Cookie Value: " + jsessionidCookie.get().getValue()+" "+jsessionidCookie.toString());
-                } else {
-                    System.out.println("JSESSIONID Cookie NOT found in this request (though CORS allows credentials).");
-                }
-            } else {
-                System.out.println("No cookies found in this request.");
-            }
-
-            // Now, check for session attributes
-            String userId = (String) session.getAttribute("userId"); // Example attribute
-            if (userId != null) {
-                System.out.println("User ID found in session: " + userId);
-                // Your OTP verification logic here, potentially using the userId from the session
-                return "OTP Verification Attempted for User ID: " + userId + ", OTP:";
-            }
-        }
-        return "No";
-    }
-
-
-
     @PostMapping("/newuser")
     public ResponseEntity<?> createUser(@RequestBody @Valid UserEntity userentity,BindingResult bindingResult) throws Exception {
-        System.out.print(userentity.getEmailId() + " 1234567");
+        System.out.print(userentity.getEmailId());
         if (bindingResult.hasErrors()) {
             // Collect all error messages
             StringBuilder errorMessages = new StringBuilder();
@@ -174,17 +148,6 @@ public class UserController {
 
             return ResponseEntity.status(HttpStatus.OK).body(user);
         }
-    }
-
-    @GetMapping("/lotr")
-    public List<Book> lotr()
-    {
-        Bookresponse response = webclient.get()
-                 .uri("https://openlibrary.org/search.json?q=the+lord+of+the+rings")
-                 .retrieve()
-                 .bodyToMono(Bookresponse.class)
-                 .block();
-         return response.getDocs();
     }
 
     @GetMapping("/user/{id}")
@@ -204,5 +167,7 @@ public class UserController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
+
+
 
 }
