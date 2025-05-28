@@ -11,7 +11,9 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
     public @interface ValidPaField {
-        String message() default "Field must be at least 6 characters long and start with 'pa'";
-        Class<?>[] groups() default {};
-        Class<? extends Payload>[] payload() default{};
-    }
+    String message() default "Field must be at least 6 characters long and start with 'pa'";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
+}

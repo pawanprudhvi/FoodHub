@@ -1,7 +1,13 @@
 package FoodHub.Hub.Entity;
 
+//import FoodHub.Hub.Configuration.LowerCaseDeserialiser;
+//import FoodHub.Hub.Configuration.LowerCaseDeserialiser;
+import FoodHub.Hub.Validations.Gmail;
 import FoodHub.Hub.Validations.ValidPaField;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -24,7 +30,10 @@ import java.util.List;
 @Valid
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserEntity implements UserDetails {
-    public UserEntity(String password, long userId, String emailId) {
+
+
+    public UserEntity(String username,String password, long userId, String emailId) {
+        this.username=username;
         this.password = password;
         UserId = userId;
         this.emailId = emailId;
@@ -42,6 +51,10 @@ public class UserEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role!=null?List.of(new SimpleGrantedAuthority(role.name())):List.of();
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -99,6 +112,8 @@ public class UserEntity implements UserDetails {
         this.emailId = emailId;
     }
 
+
+
     public UserEntity(Role role, String password, long userId, String emailId) {
         this.role = role;
         this.password = password;
@@ -113,6 +128,7 @@ public class UserEntity implements UserDetails {
     @Email
     @NotNull
     @Column(unique=true)
+    @Gmail
     private String emailId;
 
     public Role getRole() {
@@ -135,10 +151,10 @@ public class UserEntity implements UserDetails {
         this.role = role;
     }
 
-    public UserEntity(Role role, String password, long userId, String emailId, String otp, Long otpExpiry) {
+    public UserEntity(Role role, String password, Long userId, String emailId, String otp, Long otpExpiry) {
         this.role = role;
         this.password = password;
-        UserId = userId;
+        this.UserId = userId;
         this.emailId = emailId;
         this.otp = otp;
         this.otpExpiry = otpExpiry;
@@ -159,8 +175,35 @@ public class UserEntity implements UserDetails {
     public Long getOtpExpiry() {
         return otpExpiry;
     }
+    private String username;
 
     private String otp;
 
     private Long otpExpiry;
+
+    public UserEntity(Role role, String password, long userId, String emailId, String username, String otp, Long otpExpiry, List<TableReservations> reservations) {
+        this.role = role;
+        this.password = password;
+        UserId = userId;
+        this.emailId = emailId;
+        this.username = username;
+        this.otp = otp;
+        this.otpExpiry = otpExpiry;
+        this.reservations = reservations;
+    }
+
+    public List<TableReservations> getReservations() {
+        return reservations;
+    }
+
+    public void setReservations(List<TableReservations> reservations) {
+        this.reservations = reservations;
+    }
+
+
+
+
+
+    @OneToMany(mappedBy="user")
+    private List<TableReservations> reservations;
 }

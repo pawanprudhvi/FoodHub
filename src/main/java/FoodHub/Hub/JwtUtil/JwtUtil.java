@@ -34,8 +34,9 @@ public class JwtUtil
     SecretKeyProvider secretkeyprovider;
 
 
-    public String generateToken(UserDetails user) throws Exception {
+    public String generateToken(UserDetails user,String role) throws Exception {
         HashMap<String,Object> claims = new HashMap<>();
+        claims.put("role",role);
         return createToken(claims,user.getUsername());
     }
 
@@ -43,7 +44,7 @@ public class JwtUtil
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
-                .setExpiration(new Date(System.currentTimeMillis()+1000*60*10))
+                .setExpiration(new Date(System.currentTimeMillis()+1000*10*10*10))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(SignatureAlgorithm.HS256,SECRET_KEY)
                 .compact();
