@@ -4,10 +4,7 @@ import FoodHub.Hub.DTO.*;
 import FoodHub.Hub.Entity.*;
 import FoodHub.Hub.JwtUtil.JwtUtil;
 import FoodHub.Hub.OtpService.Otpserviceimpl;
-import FoodHub.Hub.Repository.AdminRepository;
-import FoodHub.Hub.Repository.ReservationsRepo;
-import FoodHub.Hub.Repository.TableRepository;
-import FoodHub.Hub.Repository.UserRepo;
+import FoodHub.Hub.Repository.*;
 import FoodHub.Hub.UserService.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -69,6 +66,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     ReservationsRepo reservationsrepo;
+
+    @Autowired
+    ReservationHistoryRepo reservationHistoryRepo;
+
 
     @PreDestroy
     public void destroy() {
@@ -243,6 +244,18 @@ public class UserServiceImpl implements UserService {
         UserEntity user=userrepo.findByEmailId(emailId).orElseThrow(()->new UsernameNotFoundException(("user not found")));
         List<Tables> tables=reserveTable(reservations);
         List<TableReservations> reservationsconfirmed=new ArrayList<>();
+        ReservationHistory reservationHistory=new ReservationHistory();
+
+        reservationHistory.setUser(user);
+        reservationHistory.setReservationDate(reservations.getReservationDate());
+        reservationHistory.setReservationTime(reservations.getReservationTime());
+        reservationHistory.setCapacity(reservations.getCount());
+        reservationHistory.setUserName(user.getUsername());
+        reservationHistory.setEmailId(user.getEmailId());
+        reservationHistoryRepo.save(reservationHistory);
+
+
+
         if(tables!=null)
         {
             for(Tables table:tables)
@@ -253,6 +266,10 @@ public class UserServiceImpl implements UserService {
                 tableReservation.setReservationTime(reservations.getReservationTime());
                 tableReservation.setTables(table);
                 tableReservation.setStatus("Booked");
+
+
+
+
 
                 reservationsrepo.save(tableReservation);
                 reservationsconfirmed.add(tableReservation);

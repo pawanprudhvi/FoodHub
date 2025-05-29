@@ -3,11 +3,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Base64;
 
 @SpringBootApplication
+@EntityScan(basePackages = "FoodHub.Hub.Entity")
 public class HubApplication {
 
 	public static void main(String[] args){
