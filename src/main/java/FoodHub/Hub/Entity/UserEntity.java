@@ -206,4 +206,8 @@ public class UserEntity implements UserDetails {
 
     @OneToMany(mappedBy="user")
     private List<TableReservations> reservations;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    private List<ReservationHistory> reservationHistories;
 }

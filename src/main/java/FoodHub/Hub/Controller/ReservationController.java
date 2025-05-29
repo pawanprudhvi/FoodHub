@@ -2,8 +2,10 @@ package FoodHub.Hub.Controller;
 
 
 import FoodHub.Hub.DTO.ReservationDto;
+import FoodHub.Hub.Entity.ReservationHistory;
 import FoodHub.Hub.Entity.TableReservations;
 import FoodHub.Hub.Entity.UserEntity;
+import FoodHub.Hub.Repository.ReservationHistoryRepo;
 import FoodHub.Hub.Repository.ReservationsRepo;
 import FoodHub.Hub.Repository.UserRepo;
 import FoodHub.Hub.UserServiceImpl.UserServiceImpl;
@@ -31,6 +33,9 @@ public class ReservationController {
     @Autowired
     ReservationsRepo reservationRepo;
 
+    @Autowired
+    ReservationHistoryRepo reservationHistoryRepo;
+
     @PostMapping("table/reserve")
     public ResponseEntity<?> reserveTable(@CurrentSecurityContext(expression="authentication?.name") String emailId, @RequestBody ReservationDto reservations, HttpServletRequest request)
     {
@@ -52,7 +57,8 @@ public class ReservationController {
     public ResponseEntity<?> getBookingHistory(@CurrentSecurityContext(expression="authentication?.name") String emailId)
     {
         UserEntity user=userrepo.findByEmailId(emailId).orElseThrow(()->new UsernameNotFoundException("user not found for this email id"));
-        List<TableReservations> reservationList=reservationRepo.findByUser(user);
+        List<ReservationHistory> reservationList=reservationHistoryRepo.findByUser(user);
+        System.out.println(reservationList);
         return ResponseEntity.status(200).body(reservationList);
     }
 
