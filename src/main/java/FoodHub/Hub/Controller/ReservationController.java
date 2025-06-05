@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 @RestController
@@ -43,7 +44,7 @@ public class ReservationController {
         List<TableReservations> tablereservations=userserviceimpl.bookTable(emailId,reservations);
         if(!tablereservations.isEmpty())
         {
-            userserviceimpl.sendBookingDetailsToMail(request,emailId);
+            userserviceimpl.sendBookingDetailsToMail(request,emailId,reservations);
             return ResponseEntity.status(200).body(tablereservations);
         }
         else {
@@ -66,8 +67,4 @@ public class ReservationController {
     public ResponseEntity<?> verifyToken(@CurrentSecurityContext(expression="authentication?.name") String emailId) {
         return ResponseEntity.status(200).body("user verified");
     }
-
-
-
-
 }

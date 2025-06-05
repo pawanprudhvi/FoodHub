@@ -7,12 +7,10 @@ import FoodHub.Hub.OtpService.Otpserviceimpl;
 import FoodHub.Hub.Repository.*;
 import FoodHub.Hub.UserService.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -20,18 +18,19 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
-
+import java.time.format.DateTimeFormatter;
+import javax.swing.text.DateFormatter;
 import java.lang.reflect.Field;
-import java.time.Duration;
+import java.text.DateFormat;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -115,14 +114,17 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    public void sendBookingDetailsToMail(HttpServletRequest request, String emailid) {
+    public void sendBookingDetailsToMail(HttpServletRequest request, String emailid, ReservationDto reservations) {
 
         if (emailid != null) {
+            UserEntity user=userrepo.findByEmailId(emailid).orElseThrow(()->new UsernameNotFoundException("User not found to send email"));
+            String ampm=reservations.getReservationTime().getHour()<12?"A.M":"P.M";
+
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(emailid);
             message.setSubject("FoodHub booking information");
-            message.setText("Reservation Confirmed,Hello, your table has been successfully booked for 20th May at 7 PM");
+            message.setText("Reservation Confirmed!\nHello "+user.getUsernames()+",your table at FoodHub has been successfully booked for "+reservations.getReservationDate().getDayOfWeek()+" "+reservations.getReservationDate().toString()+" at "+reservations.getReservationTime().toLocalTime()+" "+ampm);
             javamailsender.send(message);
         }
     }

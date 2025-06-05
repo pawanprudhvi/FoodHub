@@ -66,6 +66,11 @@ public class UserEntity implements UserDetails {
         return this.emailId;
     }
 
+    public String getUsernames()
+    {
+        return this.username;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
